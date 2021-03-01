@@ -1,0 +1,10 @@
+{
+  "key1": 10,
+  "key2": true,
+  "key3": 123.45,
+  "key4": "Suraj Gharat",
+  "key5": {
+    "key51": false,
+    "key52": 10.20
+  }
+}

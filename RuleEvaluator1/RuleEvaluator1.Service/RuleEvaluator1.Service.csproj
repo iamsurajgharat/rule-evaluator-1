@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RuleEvaluator1.Common\RuleEvaluator1.Common.csproj" />
+    <ProjectReference Include="..\RuleEvaluator1.Parser\RuleEvaluator1.Parser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Cluster" Version="1.4.16" />
+    <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.16" />
+    <PackageReference Include="Akka.DI.AutoFac" Version="1.4.1" />
+    <PackageReference Include="Akka.Persistence" Version="1.4.16" />
+  </ItemGroup>
+
+</Project>
