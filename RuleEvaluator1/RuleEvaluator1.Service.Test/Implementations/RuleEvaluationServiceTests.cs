@@ -3,6 +3,7 @@ using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using FluentAssertions;
 using Moq;
+using RuleEvaluator1.Common.Enums;
 using RuleEvaluator1.Common.Exceptions;
 using RuleEvaluator1.Common.Helpers;
 using RuleEvaluator1.Common.Models;

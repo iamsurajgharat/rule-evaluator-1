@@ -1,8 +1,7 @@
-﻿using System;
+﻿using RuleEvaluator1.Common.Enums;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace RuleEvaluator1.Common.Models
 {
@@ -53,13 +52,7 @@ namespace RuleEvaluator1.Common.Models
         {
             var paramsl = new List<ParameterExpression>();
             Expression cex = Compile(metadata, paramsl, typeof(bool));
-            return new CompiledRule
-            {
-                Id = RawRule.Id,
-                Result = RawRule.Result,
-                Rule = Expression.Lambda(cex, paramsl).Compile(),
-                Parameters = paramsl.Select(x => new CompiledRuleParameter { Name = x.Name, Type = x.Type }).ToList()
-            };
+            return new CompiledRule(RawRule, Expression.Lambda(cex, paramsl).Compile(), paramsl);
         }
 
         public Expression Compile(Dictionary<string, RuleDataType> metadata, List<ParameterExpression> parameters, Type resultType)
@@ -179,38 +172,5 @@ namespace RuleEvaluator1.Common.Models
             };
 
         }
-    }
-
-    public enum RuleDataType
-    {
-        Bool,
-        Number,
-        Text
-    }
-
-    public enum RuleType
-    {
-        Constant,
-        Variable,
-        BinaryOperator,
-        Function
-    }
-
-    public enum RuleOperator
-    {
-        Plus,
-        Minus,
-        Multiply,
-        Division,
-        UnaryMinus,
-        Modulo,
-        Gt,
-        Lt,
-        Gte,
-        Lte,
-        Eq,
-        NotEquals,
-        And,
-        Or
     }
 }

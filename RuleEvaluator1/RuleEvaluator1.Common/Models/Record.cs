@@ -28,11 +28,6 @@ namespace RuleEvaluator1.Common.Models
             }
         }
 
-        public Dictionary<string, object> GetDataAsDictionary()
-        {
-            return this.data;
-        }
-
         public T Get<T>(string fieldName)
         {
             return (T)Get(fieldName, typeof(T));
@@ -111,6 +106,11 @@ namespace RuleEvaluator1.Common.Models
         public static explicit operator Record(Dictionary<string, object> data)
         {
             return new Record(data);
+        }
+
+        public static explicit operator Dictionary<string, object>(Record record)
+        {
+            return record.data;
         }
     }
 }

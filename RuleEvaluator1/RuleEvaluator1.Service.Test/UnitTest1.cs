@@ -1,6 +1,7 @@
 using Antlr4.Runtime;
 using FluentAssertions;
 using Newtonsoft.Json;
+using RuleEvaluator1.Common.Enums;
 using RuleEvaluator1.Common.Models;
 using RuleEvaluator1.Parser;
 using System;

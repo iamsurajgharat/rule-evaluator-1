@@ -46,5 +46,40 @@ namespace RuleEvaluator1.Common.Test.Models
 
             }
         }
+
+        public class Set : RecordTests
+        {
+            [Fact]
+            public void Should_set_primitive_values_correctly()
+            {
+                // arrange
+                var record = new Common.Models.Record();
+
+                // act
+                record.Set("key1", 10);
+                record.Set("key2", 10.20m);
+                record.Set("key3", true);
+                record.Set("key4", "TextMessage");
+
+                // act and assure
+                record.Get<decimal>("key1").Should().Be(10);
+                record.Get<decimal>("key2").Should().Be(10.20m);
+                record.Get<bool>("key3").Should().Be(true);
+                record.Get<string>("key4").Should().Be("TextMessage");
+            }
+
+            [Fact]
+            public void Should_set_nested_values_correctly()
+            {
+                // arrange
+                var record = new Common.Models.Record();
+
+                // act
+                record.Set("key1.key11", 10.20);
+
+                // act and assure
+                record.Get<decimal>("key1.key11").Should().Be(10.20m);
+            }
+        }
     }
 }

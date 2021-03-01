@@ -1,42 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace RuleEvaluator1.Common.Models
 {
     public class CompiledRule
     {
-        public string Id { get; set; }
-        public object Result { get; set; }
-        public Delegate Rule { get; set; }
-        public List<CompiledRuleParameter> Parameters { get; set; } = new List<CompiledRuleParameter>();
+        private readonly InputRule rawRule;
+        private readonly Delegate predicate;
+        private readonly List<CompiledRuleParameter> parameters = new List<CompiledRuleParameter>();
+
+        public CompiledRule(InputRule rule, Delegate compiledExpression, List<ParameterExpression> parameters)
+        {
+            this.rawRule = rule ?? throw new ArgumentNullException(nameof(rule));
+            this.predicate = compiledExpression ?? throw new ArgumentNullException(nameof(compiledExpression));
+            this.parameters = (parameters ?? Enumerable.Empty<ParameterExpression>()).Select(x => new CompiledRuleParameter { Name = x.Name, Type = x.Type }).ToList();
+        }
 
         public bool Evaluate(Record data)
         {
-            if (Parameters.Count == 0)
+            if (parameters.Count == 0)
             {
-                return (bool)Rule.DynamicInvoke();
+                return (bool)predicate.DynamicInvoke();
             }
             else
             {
-                var arguments = GetParameterValues(data);
-                return (bool)Rule.DynamicInvoke(arguments);
+                object[] arguments = GetParameterValues(data);
+                return (bool)predicate.DynamicInvoke(arguments);
             }
         }
 
         public object EvaluateForResult(Record data)
         {
-            return Evaluate(data) ? Result : null;
+            return Evaluate(data) ? rawRule.Result : null;
         }
 
         private object[] GetParameterValues(Record data)
         {
-            var values = new object[Parameters.Count];
+            var values = new object[parameters.Count];
 
             if (data != null)
             {
-                for (int i = 0; i < Parameters.Count; i++)
+                for (int i = 0; i < parameters.Count; i++)
                 {
-                    values[i] = data.Get(Parameters[i].Name, Parameters[i].Type);
+                    values[i] = data.Get(parameters[i].Name, parameters[i].Type);
                 }
             }
 

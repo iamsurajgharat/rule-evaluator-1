@@ -22,7 +22,7 @@ namespace RuleEvaluator1.Common.Marshallers
 
         public override void Write(Utf8JsonWriter writer, Record value, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(JsonSerializer.Serialize(value.GetDataAsDictionary()));
+            writer.WriteStringValue(JsonSerializer.Serialize((Dictionary<string, object>)value));
         }
 
         private Dictionary<string, object> ReadObject(ref Utf8JsonReader reader)
