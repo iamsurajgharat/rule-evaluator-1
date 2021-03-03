@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using RuleEvaluator1.Common.Enums;
 using RuleEvaluator1.Common.Exceptions;
 using RuleEvaluator1.Common.Models;
 using RuleEvaluator1.Service.Interfaces;
@@ -80,16 +81,11 @@ namespace RuleEvaluator1.Service.Implementations
                 return;
             }
 
-            Dictionary<string, RuleDataType> processedMetadata = new Dictionary<string, RuleDataType>();
+            RuleMetadata processedMetadata = new RuleMetadata();
             List<string> invalidRuleDataTypes = new List<string>();
             foreach (var item in metadata)
             {
-                var convertedEnum = GetRuleDataType(item.Value);
-                if (convertedEnum.HasValue)
-                {
-                    processedMetadata[item.Key] = convertedEnum.Value;
-                }
-                else
+                if(!processedMetadata.Upsert(item.Key, item.Value))
                 {
                     invalidRuleDataTypes.Add(item.Value);
                 }
@@ -108,11 +104,6 @@ namespace RuleEvaluator1.Service.Implementations
                     throw new RuleEvaluatorException(response.Message);
                 }
             }
-        }
-
-        private RuleDataType? GetRuleDataType(string ruleDataTypeAsString)
-        {
-            return Enum.TryParse(ruleDataTypeAsString, true, out RuleDataType result) ? (RuleDataType?)result : null;
         }
     }
 }

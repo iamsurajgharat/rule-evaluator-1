@@ -52,7 +52,7 @@ namespace RuleEvaluator1.Service.Actors
             foreach (var item in request.Rules)
             {
                 rules[item.RawRule.Id] = item;
-                compiledRules[item.RawRule.Id] = item.Compile(request.Metadata);
+                compiledRules[item.RawRule.Id] = item.Compile();
             }
         }
     }

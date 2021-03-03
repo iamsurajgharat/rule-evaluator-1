@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using Akka.Actor;
 using RuleEvaluator1.Common.Models;
+using RuleEvaluator1.Common.Enums;
 
 namespace RuleEvaluator1.Service.Actors
 {
@@ -16,7 +17,7 @@ namespace RuleEvaluator1.Service.Actors
     {
         private readonly IActorProviderService actorProviderService;
         private readonly int numberOfAkkaShards;
-        private Dictionary<string, RuleDataType> metadata;
+        private RuleMetadata metadata;
 
         private readonly Dictionary<string, EvaluateRequestState> evaluateRequestData;
 
@@ -26,7 +27,7 @@ namespace RuleEvaluator1.Service.Actors
         {
             this.numberOfAkkaShards = 10;
             this.actorProviderService = actorProviderService ?? throw new ArgumentNullException(nameof(actorProviderService));
-            this.metadata = new Dictionary<string, RuleDataType>();
+            this.metadata = new RuleMetadata();
             this.evaluateRequestData = new Dictionary<string, EvaluateRequestState>();
 
             // process add/update rules request
@@ -105,7 +106,7 @@ namespace RuleEvaluator1.Service.Actors
 
         private void ProcessSaveMetadataRequest(SaveMetadataRequest request)
         {
-            if (request.Metadata == null || request.Metadata.Count == 0)
+            if (request.Metadata == null || request.Metadata.IsEmpty())
             {
                 Sender.Tell(new BaseAckResponse { Message = Common.Constants.Messages.EmptyRequest, IsSuccess = false });
             }

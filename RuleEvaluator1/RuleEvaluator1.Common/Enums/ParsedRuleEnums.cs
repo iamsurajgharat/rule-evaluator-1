@@ -4,7 +4,8 @@
     {
         Bool,
         Number,
-        Text
+        Text,
+        Null
     }
 
     public enum RuleType

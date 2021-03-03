@@ -1,4 +1,5 @@
 ﻿using RuleEvaluator1.Common.Enums;
+using RuleEvaluator1.Common.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -16,11 +17,12 @@ namespace RuleEvaluator1.Common.Models
         public object Value { get; set; }
         public string Variable { get; set; }
 
-        public static ParsedRule Parameter(string name)
+        public static ParsedRule Parameter(string name, RuleDataType dataType)
         {
             return new ParsedRule
             {
                 Type = RuleType.Variable,
+                ResultType = dataType,
                 Variable = name
             };
         }
@@ -30,13 +32,14 @@ namespace RuleEvaluator1.Common.Models
             return new ParsedRule
             {
                 Type = RuleType.Constant,
-                Value = value
+                Value = value,
+                ResultType = GetRuleDataType(value)
             };
         }
 
         public static ParsedRule MakeBinary(ParsedRule left, string opr, ParsedRule right)
         {
-            return new ParsedRule
+            var result = new ParsedRule
             {
                 Type = RuleType.BinaryOperator,
                 Operator = ToMyExpressionOperator(opr),
@@ -46,16 +49,20 @@ namespace RuleEvaluator1.Common.Models
                     right
                 }
             };
+
+            result.ResultType = GetRuleDataType(result.Operator);
+
+            return result;
         }
 
-        public CompiledRule Compile(Dictionary<string, RuleDataType> metadata)
+        public CompiledRule Compile()
         {
             var paramsl = new List<ParameterExpression>();
-            Expression cex = Compile(metadata, paramsl, typeof(bool));
-            return new CompiledRule(RawRule, Expression.Lambda(cex, paramsl).Compile(), paramsl);
+            Expression cex = Compile(paramsl);
+            return new CompiledRule(RawRule, Expression.Lambda(Reduce(cex), paramsl).Compile(), paramsl);
         }
 
-        public Expression Compile(Dictionary<string, RuleDataType> metadata, List<ParameterExpression> parameters, Type resultType)
+        private Expression Compile(List<ParameterExpression> parameters)
         {
             if (parameters == null)
             {
@@ -65,15 +72,14 @@ namespace RuleEvaluator1.Common.Models
             switch (Type)
             {
                 case RuleType.BinaryOperator:
-                    var operandType = GetOperandTypeForOperator(Operator);
-                    return CompileBinaryOperator(Operands[0].Compile(metadata, parameters, operandType), Operator, Operands[1].Compile(metadata, parameters, operandType));
+                    return CompileBinaryOperator(Operands[0].Compile(parameters), Operator, Operands[1].Compile(parameters));
 
                 case RuleType.Variable:
-                    var result = Expression.Parameter(GetCSharpTypeForRuleDataType(metadata, Variable), Variable);
+                    var result = Expression.Parameter(GetCSharpTypeForRuleDataType(ResultType), Variable);
                     parameters.Add(result);
                     return result;
                 case RuleType.Constant:
-                    return Expression.Constant(Value, resultType);
+                    return Expression.Constant(Value, GetCSharpTypeForRuleDataType(ResultType));
             }
 
             return null;
@@ -131,21 +137,14 @@ namespace RuleEvaluator1.Common.Models
             return typeof(object);
         }
 
-        private Type GetCSharpTypeForRuleDataType(Dictionary<string, RuleDataType> metadata, string fieldName)
+        private Type GetCSharpTypeForRuleDataType(RuleDataType ruleDataType)
         {
-            if (metadata.TryGetValue(fieldName, out var ruleDataType))
+            return ruleDataType switch
             {
-                return ruleDataType switch
-                {
-                    RuleDataType.Bool => typeof(bool),
-                    RuleDataType.Number => typeof(decimal),
-                    RuleDataType.Text => typeof(string)
-                };
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+                RuleDataType.Bool => typeof(bool),
+                RuleDataType.Number => typeof(decimal),
+                RuleDataType.Text => typeof(string)
+            };
         }
 
         private static RuleOperator ToMyExpressionOperator(string opr)
@@ -171,6 +170,62 @@ namespace RuleEvaluator1.Common.Models
                 _ => throw new Exception("Invalid operator : " + opr)
             };
 
+        }
+
+        private static RuleDataType GetRuleDataType(object value)
+        {
+            if (value == null)
+            {
+                return RuleDataType.Null;
+            }
+
+            var valueType = value.GetType();
+
+            if(valueType == typeof(byte) || valueType == typeof(short) || valueType == typeof(int) || valueType == typeof(long) || valueType == typeof(double) || valueType == typeof(float)|| valueType == typeof(decimal))
+            {
+                return RuleDataType.Number;
+            }
+            else if(valueType == typeof(bool))
+            {
+                return RuleDataType.Bool;
+            }
+            else if(valueType == typeof(string))
+            {
+                return RuleDataType.Text;
+            }
+
+            throw new RuleEvaluatorException("Unsupported value");
+        }
+
+        private static RuleDataType GetRuleDataType(RuleOperator value)
+        {
+            return value switch
+            {
+                RuleOperator.And => RuleDataType.Bool,
+                RuleOperator.Division => RuleDataType.Number,
+                RuleOperator.Eq => RuleDataType.Bool,
+                RuleOperator.Gt => RuleDataType.Bool,
+                RuleOperator.Gte => RuleDataType.Bool,
+                RuleOperator.Lt => RuleDataType.Bool,
+                RuleOperator.Lte => RuleDataType.Bool,
+                RuleOperator.Minus => RuleDataType.Number,
+                RuleOperator.Modulo => RuleDataType.Number,
+                RuleOperator.Multiply => RuleDataType.Number,
+                RuleOperator.NotEquals => RuleDataType.Bool,
+                RuleOperator.Or => RuleDataType.Bool,
+                RuleOperator.Plus => RuleDataType.Number,
+                RuleOperator.UnaryMinus => RuleDataType.Number
+            };
+        }
+
+        private Expression Reduce(Expression exp)
+        {
+            if (exp.CanReduce)
+            {
+                return Reduce(exp.Reduce());
+            }
+
+            return exp;
         }
     }
 }

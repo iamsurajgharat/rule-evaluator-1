@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RuleEvaluator1.Common.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,32 +9,43 @@ namespace RuleEvaluator1.Common.Models
     public class CompiledRule
     {
         private readonly InputRule rawRule;
-        private readonly Delegate predicate;
+        private readonly Delegate rule;
         private readonly List<CompiledRuleParameter> parameters = new List<CompiledRuleParameter>();
 
         public CompiledRule(InputRule rule, Delegate compiledExpression, List<ParameterExpression> parameters)
         {
             this.rawRule = rule ?? throw new ArgumentNullException(nameof(rule));
-            this.predicate = compiledExpression ?? throw new ArgumentNullException(nameof(compiledExpression));
+            this.rule = compiledExpression ?? throw new ArgumentNullException(nameof(compiledExpression));
             this.parameters = (parameters ?? Enumerable.Empty<ParameterExpression>()).Select(x => new CompiledRuleParameter { Name = x.Name, Type = x.Type }).ToList();
         }
 
-        public bool Evaluate(Record data)
+        public object Evaluate(Record data)
         {
             if (parameters.Count == 0)
             {
-                return (bool)predicate.DynamicInvoke();
+                return rule.DynamicInvoke();
             }
             else
             {
                 object[] arguments = GetParameterValues(data);
-                return (bool)predicate.DynamicInvoke(arguments);
+                return rule.DynamicInvoke(arguments);
             }
         }
 
         public object EvaluateForResult(Record data)
         {
-            return Evaluate(data) ? rawRule.Result : null;
+            var result = Evaluate(data);
+
+            if (result == null || !bool.TryParse(result.ToString(), out var value))
+            {
+                throw new RuleEvaluatorException("Rule does not return valid boolean value [" + result + "]");
+            }
+            else if (value)
+            {
+                return rawRule.Result;
+            }
+
+            return null;
         }
 
         private object[] GetParameterValues(Record data)

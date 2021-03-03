@@ -5,7 +5,7 @@ namespace RuleEvaluator1.Service.Messages
 {
     public class SaveParsedRulesRequest
     {
-        public Dictionary<string,RuleDataType> Metadata { get; set; }
+        public RuleMetadata Metadata { get; set; }
         public List<ParsedRule> Rules { get; set; }
     }
 }

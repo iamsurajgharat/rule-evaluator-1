@@ -22,7 +22,7 @@ namespace RuleEvaluator1.Service.Test
             var c2 = JsonConvert.DeserializeObject<ConstantExpression>(s1);
         }
 
-        [Fact(Skip = "Not valid anymore")]
+        /*[Fact(Skip = "Not valid anymore")]
         public void Test2()
         {
             String input = "xyz > 20";
@@ -35,7 +35,7 @@ namespace RuleEvaluator1.Service.Test
             var visitor = new MyCustomVisitor2();
             var result = visitor.Visit(tree);
             var paramsl = new List<ParameterExpression>();
-            Expression cex = result.Compile(new Dictionary<string, RuleDataType>(), paramsl, typeof(bool));
+            Expression cex = result.Compile(paramsl);
 
             Delegate cex2 = Expression.Lambda(cex, paramsl).Compile();
 
@@ -59,7 +59,7 @@ namespace RuleEvaluator1.Service.Test
             var visitor = new MyCustomVisitor2();
             var result = visitor.Visit(tree);
             var paramsl = new List<ParameterExpression>();
-            Expression cex = result.Compile(new Dictionary<string, RuleDataType>(), paramsl, typeof(bool));
+            Expression cex = result.Compile(paramsl);
 
             Delegate cex2 = Expression.Lambda(cex, paramsl).Compile();
 
@@ -71,6 +71,6 @@ namespace RuleEvaluator1.Service.Test
 
             var r3 = (bool)cex2.DynamicInvoke(new object[] { 25m, 15m});
             r3.Should().BeTrue();
-        }
+        }*/
     }
 }
