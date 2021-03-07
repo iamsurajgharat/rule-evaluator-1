@@ -54,7 +54,7 @@ constant                : NUM																	# Number
                         ;
 NUM                     : [0-9]+(.[0-9]+)?
                         ;
-TEXT                    : '\''[a-zA-Z0-9]+'\''
+TEXT                    : '"'[a-zA-Z0-9]*'"'
                         ;
 BOOL                    : 'TRUE' | 'FALSE' | 'true' | 'false'
                         ;

@@ -5,6 +5,8 @@
         Bool,
         Number,
         Text,
+        Date,
+        DateTime,
         Null
     }
 

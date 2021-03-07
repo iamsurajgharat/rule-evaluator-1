@@ -104,7 +104,7 @@ namespace RuleEvaluator1.Service.Test.Implementations
                 {
                     ["Field1"] = "Number",
                     ["Field2"] = "Text",
-                    ["Field2"] = "InvalidDataType"
+                    ["Field3"] = "InvalidDataType"
                 };
 
                 // expected error message

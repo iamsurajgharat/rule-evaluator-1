@@ -1,27 +1,7 @@
-using Antlr4.Runtime;
-using FluentAssertions;
-using Newtonsoft.Json;
-using RuleEvaluator1.Common.Enums;
-using RuleEvaluator1.Common.Models;
-using RuleEvaluator1.Parser;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using Xunit;
-
 namespace RuleEvaluator1.Service.Test
 {
     public class UnitTest1
     {
-        [Fact(Skip ="Not valid anymore")]
-        public void Test1()
-        {
-            int t = 10+-20 * 30;
-            var c1 = Expression.Constant(10);
-            var s1 = JsonConvert.SerializeObject(c1);
-            var c2 = JsonConvert.DeserializeObject<ConstantExpression>(s1);
-        }
-
         /*[Fact(Skip = "Not valid anymore")]
         public void Test2()
         {
