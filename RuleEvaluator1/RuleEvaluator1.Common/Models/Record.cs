@@ -54,7 +54,7 @@ namespace RuleEvaluator1.Common.Models
 
                 return GetDefaultValue(typeOfData);
             }
-            else if (data.ContainsKey(fieldName))
+            else if (data.ContainsKey(fieldName) && data[fieldName].GetType() == typeOfData)
             {
                 return Convert.ChangeType(data[fieldName], typeOfData);
             }

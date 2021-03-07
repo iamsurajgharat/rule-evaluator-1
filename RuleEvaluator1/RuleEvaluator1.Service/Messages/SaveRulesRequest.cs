@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RuleEvaluator1.Service.Messages
 {
-    public class SaveRuleRequest
+    public class SaveRulesRequest : BaseRequest
     {
         public List<InputRule> Rules { get; set; }
     }

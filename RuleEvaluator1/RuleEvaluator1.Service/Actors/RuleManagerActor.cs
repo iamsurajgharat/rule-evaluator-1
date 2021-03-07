@@ -1,15 +1,13 @@
-﻿using Akka.Persistence;
-using Antlr4.Runtime;
-using RuleEvaluator1.Parser;
+﻿using Akka.Actor;
+using Akka.Persistence;
+using RuleEvaluator1.Common.Models;
 using RuleEvaluator1.Service.Helpers;
 using RuleEvaluator1.Service.Interfaces;
 using RuleEvaluator1.Service.Messages;
 using RuleEvaluator1.Service.Models;
 using System;
 using System.Collections.Generic;
-using Akka.Actor;
-using RuleEvaluator1.Common.Models;
-using RuleEvaluator1.Common.Enums;
+using System.Linq;
 
 namespace RuleEvaluator1.Service.Actors
 {
@@ -21,6 +19,9 @@ namespace RuleEvaluator1.Service.Actors
 
         private readonly Dictionary<string, EvaluateRequestState> evaluateRequestData;
 
+        // save request state
+        private readonly Dictionary<string, SaveRuleRequestState> saveRequestData;
+
         public override string PersistenceId => "RuleManagerActor101";
 
         public RuleManagerActor(IActorProviderService actorProviderService)
@@ -29,9 +30,13 @@ namespace RuleEvaluator1.Service.Actors
             this.actorProviderService = actorProviderService ?? throw new ArgumentNullException(nameof(actorProviderService));
             this.metadata = new RuleMetadata();
             this.evaluateRequestData = new Dictionary<string, EvaluateRequestState>();
+            this.saveRequestData = new Dictionary<string, SaveRuleRequestState>();
 
             // process add/update rules request
-            Command<SaveRuleRequest>(ProcessSaveRuleRequest);
+            Command<SaveRulesRequest>(ProcessSaveRuleRequest);
+
+            // process save response from rule actor
+            Command<SaveShardRulesResponse>(ProcessSaveShardRulesResponse);
 
             // metadata 
             Command<SaveMetadataRequest>(ProcessSaveMetadataRequest);
@@ -39,12 +44,13 @@ namespace RuleEvaluator1.Service.Actors
             // eval
             Command<EvaluateRulesRequest>(ProcessEvaluateRulesRequest);
 
+            // evaluate response from rule actor
             Command<EvaluateShardRulesResponse>(ProcessEvaluateShardRulesResponse);
         }
 
         private void ProcessEvaluateRulesRequest(EvaluateRulesRequest request)
         {
-            this.evaluateRequestData[request.Id] = new EvaluateRequestState(request.Records.Count, Sender);
+            this.evaluateRequestData[request.Id] = new EvaluateRequestState(request.Records.Count, request.Id, Sender);
 
             for (int i = 0; i < numberOfAkkaShards; i++)
             {
@@ -74,33 +80,40 @@ namespace RuleEvaluator1.Service.Actors
             }
         }
 
-        private void ProcessSaveRuleRequest(SaveRuleRequest request)
+        private void ProcessSaveRuleRequest(SaveRulesRequest request)
         {
-            var rulesByActorIds = new Dictionary<int, List<ParsedRule>>();
-            foreach (var item in request.Rules)
+            this.saveRequestData[request.Id] = new SaveRuleRequestState(request.Id, Sender);
+            foreach (var rules in request.Rules.GroupBy(x => CommonUtil.GetRuleActorIdSequence(x.Id, numberOfAkkaShards)))
             {
-                var parsedRule = Parse(item);
-                var idSequence = CommonUtil.GetRuleActorIdSequence(item.Id, numberOfAkkaShards);
-
-                if (!rulesByActorIds.ContainsKey(idSequence))
+                var entityId = rules.First().Id;
+                var message = new SaveShardRulesRequest
                 {
-                    rulesByActorIds.Add(idSequence, new List<ParsedRule>());
-                }
-
-                rulesByActorIds[idSequence].Add(parsedRule);
-            }
-
-            foreach (var rules in rulesByActorIds)
-            {
-                var entityId = rules.Value[0].RawRule.Id;
-                var message = new SaveParsedRulesRequest
-                {
-                    Rules = rules.Value,
+                    Id = request.Id,
+                    Rules = rules.ToList(),
                     Metadata = this.metadata
                 };
-                ShardEnvelope request2 = new ShardEnvelope(entityId, message);
 
-                actorProviderService.GetRuleActorShardRegionProxy().Tell(request2, Context.Self);
+                ShardEnvelope shardEnvelope = new ShardEnvelope(entityId, message);
+
+                actorProviderService.GetRuleActorShardRegionProxy().Tell(shardEnvelope, Context.Self);
+
+                this.saveRequestData[request.Id].PendingResponseCount++;
+            }
+        }
+
+        private void ProcessSaveShardRulesResponse(SaveShardRulesResponse response)
+        {
+            if (saveRequestData.TryGetValue(response.Id, out var requestState))
+            {
+                if (requestState.AddShardResponse(response))
+                {
+                    saveRequestData.Remove(response.Id);
+                    requestState.Requestor.Tell(requestState.CreateFinalResponse(), Self);
+                }
+            }
+            else
+            {
+                // this should never happen
             }
         }
 
@@ -115,21 +128,6 @@ namespace RuleEvaluator1.Service.Actors
 
             // sucess ack
             Sender.Tell(new BaseAckResponse { Message = Common.Constants.Messages.SucessAck, Result = this.metadata });
-        }
-
-        private ParsedRule Parse(InputRule rule)
-        {
-            String input = rule.PredicateExpression;
-            ICharStream stream = CharStreams.fromstring(input);
-            ITokenSource lexer = new Predicate1Lexer(stream);
-            ITokenStream tokens = new CommonTokenStream(lexer);
-            Predicate1Parser parser = new Predicate1Parser(tokens);
-            parser.BuildParseTree = true;
-            var tree = parser.pexpr();
-            var visitor = new MyCustomVisitor2();
-            var result = visitor.Visit(tree);
-            result.RawRule = rule;
-            return result;
         }
     }
 }

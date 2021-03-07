@@ -1,4 +1,5 @@
 ﻿using RuleEvaluator1.Common.Models;
+using RuleEvaluator1.Service.Messages;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace RuleEvaluator1.Service.Interfaces
 {
     public interface IRuleEvaluationService
     {
-        void AddUpdateRules(IEnumerable<InputRule> rules);
+        Task<Dictionary<string,BaseAckResponse>> AddUpdateRulesAsync(IEnumerable<InputRule> rules);
         IEnumerable<InputRule> GetRules(IEnumerable<string> ids);
         IEnumerable<InputRule> GetAllRules();
         void DeleteRules(IEnumerable<string> ids);

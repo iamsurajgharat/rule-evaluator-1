@@ -1,13 +1,17 @@
 ﻿using Akka.Persistence;
+using Antlr4.Runtime;
+using RuleEvaluator1.Common.Exceptions;
 using RuleEvaluator1.Common.Models;
+using RuleEvaluator1.Parser;
 using RuleEvaluator1.Service.Messages;
+using System;
 using System.Collections.Generic;
 
 namespace RuleEvaluator1.Service.Actors
 {
     public class RuleActor : ReceivePersistentActor
     {
-        private readonly Dictionary<string,ParsedRule> rules;
+        private readonly Dictionary<string, ParsedRule> rules;
         private readonly Dictionary<string, CompiledRule> compiledRules;
         public override string PersistenceId => $"{Context.Parent.Path.Name}/{Context.Self.Path.Name}";
 
@@ -17,7 +21,7 @@ namespace RuleEvaluator1.Service.Actors
             compiledRules = new Dictionary<string, CompiledRule>();
 
             // process add/update rules request
-            Command<SaveParsedRulesRequest>(ProcessSaveParsedRuleRequest);
+            Command<SaveShardRulesRequest>(ProcessSaveShardRulesRequest);
 
             // evaluate
             Command<EvaluateShardRulesRequest>(ProcessEvaluateShardRulesRequest);
@@ -30,12 +34,12 @@ namespace RuleEvaluator1.Service.Actors
 
         private void ProcessEvaluateShardRulesRequest(EvaluateShardRulesRequest request)
         {
-            var response = request.GetResponse();
+            EvaluateShardRulesResponse response = request.GetResponse();
             foreach (var rule in compiledRules)
             {
                 for (int i = 0; i < request.Records.Count; i++)
                 {
-                    var result = rule.Value.EvaluateForResult(request.Records[i]);
+                    object result = rule.Value.EvaluateForResult(request.Records[i]);
                     if (result != null)
                     {
                         response.Result[i].Add(result);
@@ -47,13 +51,47 @@ namespace RuleEvaluator1.Service.Actors
             Sender.Tell(response, Self);
         }
 
-        private void ProcessSaveParsedRuleRequest(SaveParsedRulesRequest request)
+        private void ProcessSaveShardRulesRequest(SaveShardRulesRequest request)
         {
+            SaveShardRulesResponse response = request.GetSaveShardRulesResponse();
             foreach (var item in request.Rules)
             {
-                rules[item.RawRule.Id] = item;
-                compiledRules[item.RawRule.Id] = item.Compile();
+                try
+                {
+                    ParsedRule parsedRule = Parse(request.Metadata, item);
+                    rules[item.Id] = parsedRule;
+                    compiledRules[item.Id] = parsedRule.Compile();
+                    response.Result[item.Id] = new BaseAckResponse();
+                }
+                catch (RuleEvaluatorException ex)
+                {
+                    response.Result[item.Id] = new BaseAckResponse
+                    {
+                        IsSuccess = false,
+                        Message = ex.Message
+                    };
+                }
             }
+
+            // save snapshot or journal
+
+            // send ack to the manager
+            Sender.Tell(response, Self);
+        }
+
+        private ParsedRule Parse(RuleMetadata metadata, InputRule rule)
+        {
+            String input = rule.PredicateExpression;
+            ICharStream stream = CharStreams.fromstring(input);
+            ITokenSource lexer = new Predicate1Lexer(stream);
+            ITokenStream tokens = new CommonTokenStream(lexer);
+            Predicate1Parser parser = new Predicate1Parser(tokens);
+            parser.BuildParseTree = true;
+            var tree = parser.pexpr();
+            var visitor = new MyCustomVisitor2(metadata);
+            var result = visitor.Visit(tree);
+            result.RawRule = rule;
+            return result;
         }
     }
 }

@@ -56,10 +56,16 @@ namespace RuleEvaluator1.Web.Controllers
 
         // PUT: api/Rule/5
         [HttpPut("{id}")]
-        public object Put(string id, [FromBody] Rule value)
+        public async Task<object> PutAsync(string id, [FromBody] Rule value)
         {
-            ruleEvaluationService.AddUpdateRules(List(Map<Rule, InputRule>(value)));
-            return Ok();
+            Dictionary<string, Service.Messages.BaseAckResponse> result = await ruleEvaluationService.AddUpdateRulesAsync(List(Map<Rule, InputRule>(value)));
+            var response = new WebApiResponse
+            {
+                Result = result,
+                IsSuccess = result.Values.All(x => x.IsSuccess)
+            };
+
+            return Ok(result);
         }
 
         

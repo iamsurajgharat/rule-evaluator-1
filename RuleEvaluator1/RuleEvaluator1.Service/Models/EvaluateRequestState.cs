@@ -7,17 +7,18 @@ namespace RuleEvaluator1.Service.Models
 {
     public class EvaluateRequestState
     {
-        public string RequestId { get; set; }
+        private readonly string requestId;
         public List<int> PendingShardNumbers { get; set; }
         public List<object>[] Result { get; set; }
         public IActorRef Requestor { get; set; }
 
         public bool IsComplete => PendingShardNumbers.Count == 0;
 
-        public EvaluateRequestState(int numberOfRecords, IActorRef requestor)
+        public EvaluateRequestState(int numberOfRecords, string reqId, IActorRef requestor)
         {
             Result = Enumerable.Range(0, numberOfRecords).Select(x => new List<object>()).ToArray();
             this.PendingShardNumbers = new List<int>();
+            this.requestId = reqId;
             this.Requestor = requestor;
         }
 
@@ -37,7 +38,7 @@ namespace RuleEvaluator1.Service.Models
         {
             return new EvaluateRulesResponse
             {
-                Id = RequestId,
+                Id = requestId,
                 Result = Result
             };
         }

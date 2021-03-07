@@ -23,18 +23,22 @@ namespace RuleEvaluator1.Service.Implementations
             this.actorProviderService = actorProviderService ?? throw new ArgumentNullException(nameof(actorProviderService));
         }
 
-        public void AddUpdateRules(IEnumerable<InputRule> rules)
+        public async Task<Dictionary<string, BaseAckResponse>> AddUpdateRulesAsync(IEnumerable<InputRule> rules)
         {
             if (rules == null)
             {
-                return;
+                return new Dictionary<string, BaseAckResponse>();
             }
 
-            var msg = new SaveRuleRequest
+            var msg = new SaveRulesRequest
             {
+                Id = Guid.NewGuid().ToString(),
                 Rules = rules.ToList()
             };
-            actorProviderService.GetRuleManagerActor().Tell(msg);
+
+            SaveRulesResponse result = await actorProviderService.GetRuleManagerActor().Ask<SaveRulesResponse>(msg);
+
+            return result.Result;
         }
 
         public void DeleteRules(IEnumerable<string> ids)
