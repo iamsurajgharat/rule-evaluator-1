@@ -25,6 +25,13 @@ namespace RuleEvaluator1.Web.Controllers
             this.ruleEvaluationService = ruleEvaluationService ?? throw new ArgumentNullException(nameof(ruleEvaluationService));
         }
 
+        [HttpGet("shard")]
+        public async Task<ActionResult<WebApiResponse>> GetRuleShards()
+        {
+            return Ok(WebApiResponse.Instance(await ruleEvaluationService.GetRuleShardsAsync()));
+        }
+
+
         // GET: api/Rule
         /*[HttpGet]
         public IActionResult Get()
@@ -47,7 +54,7 @@ namespace RuleEvaluator1.Web.Controllers
             }
         }*/
 
-        [HttpPost("/eval")]
+        [HttpPost("eval")]
         [Consumes("application/json")]
         public async Task<IActionResult> EvalAsync([FromBody] List<Record> records)
         {
@@ -81,7 +88,7 @@ namespace RuleEvaluator1.Web.Controllers
             return response.IsBadRequest() ? BadRequest(response) : (ActionResult<WebApiResponse>)Ok(response);
         }
 
-        [HttpPut("/metadata")]
+        [HttpPut("metadata")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<WebApiResponse>> PutMetadataAsync([FromBody] Dictionary<string, string> metadata)
         {

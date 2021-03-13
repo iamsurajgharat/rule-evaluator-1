@@ -1,4 +1,5 @@
 ﻿using RuleEvaluator1.Common.Models;
+using RuleEvaluator1.Service.Models;
 using System.Collections.Generic;
 
 namespace RuleEvaluator1.Service.Messages
@@ -13,7 +14,7 @@ namespace RuleEvaluator1.Service.Messages
             {
                 Id = Id,
                 Records = Records,
-                ShardNumber = shardNumber
+                Shard = (RuleShard)shardNumber
             };
         }
     }

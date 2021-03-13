@@ -26,6 +26,16 @@ namespace RuleEvaluator1.Web.Models
             IsSuccess = true
         };
 
+        public static WebApiResponse Instance(object result)
+        {
+            return new WebApiResponse
+            {
+                IsSuccess = true,
+                isBadRequest = false,
+                Result = result
+            };
+        }
+
         public static explicit operator WebApiResponse(Dictionary<string, BaseAckResponse> response)
         {
             var result = new WebApiResponse

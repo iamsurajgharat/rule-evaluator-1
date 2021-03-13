@@ -5,21 +5,11 @@ using System.Linq;
 
 namespace RuleEvaluator1.Service.Models
 {
-    public class EvaluateRequestState
+    public class EvaluateRequestState : BaseRequestState<List<object>[]>
     {
-        private readonly string requestId;
-        public List<int> PendingShardNumbers { get; set; }
-        public List<object>[] Result { get; set; }
-        public IActorRef Requestor { get; set; }
-
-        public bool IsComplete => PendingShardNumbers.Count == 0;
-
-        public EvaluateRequestState(int numberOfRecords, string reqId, IActorRef requestor)
+        public EvaluateRequestState(int numberOfRecords, string reqId, IActorRef requestor) : base(reqId, requestor)
         {
             Result = Enumerable.Range(0, numberOfRecords).Select(x => new List<object>()).ToArray();
-            this.PendingShardNumbers = new List<int>();
-            this.requestId = reqId;
-            this.Requestor = requestor;
         }
 
         public bool Merge(EvaluateShardRulesResponse shardRulesResponse)
@@ -29,9 +19,7 @@ namespace RuleEvaluator1.Service.Models
                 Result[i].AddRange(shardRulesResponse.Result[i]);
             }
 
-            PendingShardNumbers.Remove(shardRulesResponse.ShardNumber);
-
-            return IsComplete;
+            return base.Merge(shardRulesResponse.Shard);
         }
 
         public EvaluateRulesResponse CreateFinalResponse()

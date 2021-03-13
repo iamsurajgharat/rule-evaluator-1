@@ -77,6 +77,18 @@ namespace RuleEvaluator1.Service.Implementations
             return new List<InputRule>();
         }
 
+        public async Task<Dictionary<string, List<string>>> GetRuleShardsAsync()
+        {
+            var request = new GetInputRuleRequest
+            {
+                Id = Guid.NewGuid().ToString(),
+            };
+
+            var result = await actorProviderService.GetRuleManagerActor().Ask<GetInputRuleResponse>(request);
+
+            return result.Result.ToDictionary(x => x.Key.ToString(), y => y.Value.Select(x => x.Id).ToList());
+        }
+
         public async Task PutMetadataAsync(Dictionary<string, string> metadata)
         {
             if (metadata == null)

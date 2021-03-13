@@ -6,6 +6,7 @@ using RuleEvaluator1.Parser;
 using RuleEvaluator1.Service.Messages;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RuleEvaluator1.Service.Actors
 {
@@ -26,10 +27,18 @@ namespace RuleEvaluator1.Service.Actors
             // evaluate
             Command<EvaluateShardRulesRequest>(ProcessEvaluateShardRulesRequest);
 
+            // get rules back
+            Command<GetShardInputRuleRequest>(ProcessGetInputRulesRequest);
+
             Command<object>(x =>
             {
                 Context.System.Log.Warning("Unhandled message :" + x);
             });
+        }
+
+        private void ProcessGetInputRulesRequest(GetShardInputRuleRequest request)
+        {
+            Sender.Tell(request.CreateResponse(rules.Values.Select(x => x.RawRule)), Self);
         }
 
         private void ProcessEvaluateShardRulesRequest(EvaluateShardRulesRequest request)

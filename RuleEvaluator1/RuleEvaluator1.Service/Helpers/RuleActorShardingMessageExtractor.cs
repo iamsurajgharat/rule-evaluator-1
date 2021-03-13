@@ -16,7 +16,7 @@ namespace RuleEvaluator1.Service.Helpers
             if (message is ShardEnvelope shardEnvelope && !string.IsNullOrWhiteSpace(shardEnvelope.entityId))
             {
                 return "Rule_" + (shardEnvelope.message is EvaluateShardRulesRequest evaluateShardRulesRequest ?
-                                    CommonUtil.GetRuleActorIdSequence(evaluateShardRulesRequest.ShardNumber, numberOfShards) :
+                                    CommonUtil.GetRuleActorIdSequence(evaluateShardRulesRequest.Shard.Number, numberOfShards) :
                                     CommonUtil.GetRuleActorIdSequence(shardEnvelope.entityId, numberOfShards)
                                     );
             }

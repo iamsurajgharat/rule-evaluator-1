@@ -4,9 +4,8 @@ using System.Linq;
 
 namespace RuleEvaluator1.Service.Messages
 {
-    public class EvaluateShardRulesRequest : BaseRequest
+    public class EvaluateShardRulesRequest : ShardBaseRequest
     {
-        public int ShardNumber { get; set; }
         public List<Record> Records { get; set; }
 
         public EvaluateShardRulesResponse GetResponse()
@@ -15,7 +14,7 @@ namespace RuleEvaluator1.Service.Messages
             {
                 Id = Id,
                 Result = Enumerable.Range(0, Records.Count).Select(x => new List<object>()).ToArray(),
-                ShardNumber = ShardNumber
+                Shard = Shard
             };
         }
     }

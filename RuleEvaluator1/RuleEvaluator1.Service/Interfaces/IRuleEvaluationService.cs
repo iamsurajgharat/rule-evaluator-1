@@ -10,6 +10,7 @@ namespace RuleEvaluator1.Service.Interfaces
         Task<Dictionary<string,BaseAckResponse>> AddUpdateRulesAsync(IEnumerable<InputRule> rules);
         IEnumerable<InputRule> GetRules(IEnumerable<string> ids);
         IEnumerable<InputRule> GetAllRules();
+        Task<Dictionary<string, List<string>>> GetRuleShardsAsync();
         void DeleteRules(IEnumerable<string> ids);
         Task<List<object>[]> EvaluateAsync(List<Record> records);
         Task PutMetadataAsync(Dictionary<string, string> metadata);

@@ -2,9 +2,8 @@
 
 namespace RuleEvaluator1.Service.Messages
 {
-    public class EvaluateShardRulesResponse : BaseRequest
+    public class EvaluateShardRulesResponse : ShardBaseRequest
     {
-        public int ShardNumber { get; set; }
         public List<object>[] Result { get; set; }
     }
 }

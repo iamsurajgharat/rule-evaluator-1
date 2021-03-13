@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RuleEvaluator1.Service.Messages
 {
-    public class SaveShardRulesResponse : BaseRequest
+    public class SaveShardRulesResponse : ShardBaseRequest
     {
         public Dictionary<string, BaseAckResponse> Result { get; set; }
     }

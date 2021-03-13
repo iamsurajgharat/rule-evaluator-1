@@ -17,10 +17,14 @@ namespace RuleEvaluator1.Service.Actors
         private readonly int numberOfAkkaShards;
         private RuleMetadata metadata;
 
+        // evaluate request state
         private readonly Dictionary<string, EvaluateRequestState> evaluateRequestData;
 
         // save request state
         private readonly Dictionary<string, SaveRuleRequestState> saveRequestData;
+
+        // get input request state
+        private readonly Dictionary<string, GetInputRuleRequestState> getInputRuleRequestData;
 
         public override string PersistenceId => "RuleManagerActor101";
 
@@ -31,6 +35,7 @@ namespace RuleEvaluator1.Service.Actors
             this.metadata = new RuleMetadata();
             this.evaluateRequestData = new Dictionary<string, EvaluateRequestState>();
             this.saveRequestData = new Dictionary<string, SaveRuleRequestState>();
+            this.getInputRuleRequestData = new Dictionary<string, GetInputRuleRequestState>();
 
             // process add/update rules request
             Command<SaveRulesRequest>(ProcessSaveRuleRequest);
@@ -46,6 +51,44 @@ namespace RuleEvaluator1.Service.Actors
 
             // evaluate response from rule actor
             Command<EvaluateShardRulesResponse>(ProcessEvaluateShardRulesResponse);
+
+            // get input rule request
+            Command<GetInputRuleRequest>(ProcessGetInputRuleRequest);
+
+            // get input rule response from rule actor
+            Command<GetShardInputRuleResponse>(ProcessGetShardInputRuleResponse);
+        }
+
+        private void ProcessGetInputRuleRequest(GetInputRuleRequest request)
+        {
+            this.getInputRuleRequestData[request.Id] = new GetInputRuleRequestState(request.Id, Sender);
+
+            for (int i = 0; i < numberOfAkkaShards; i++)
+            {
+                GetShardInputRuleRequest payload = request.GetShardInputRuleRequest(i);
+
+                ShardEnvelope shardEnvelope = new ShardEnvelope(i.ToString(), payload);
+
+                actorProviderService.GetRuleActorShardRegionProxy().Tell(shardEnvelope, Context.Self);
+
+                this.getInputRuleRequestData[request.Id].PendingShards.Add(payload.Shard);
+            }
+        }
+
+        private void ProcessGetShardInputRuleResponse(GetShardInputRuleResponse response)
+        {
+            if (getInputRuleRequestData.TryGetValue(response.Id, out var requestState))
+            {
+                if (requestState.Merge(response))
+                {
+                    getInputRuleRequestData.Remove(response.Id);
+                    requestState.Requestor.Tell(requestState.CreateFinalResponse(), Self);
+                }
+            }
+            else
+            {
+                // this should never happen
+            }
         }
 
         private void ProcessEvaluateRulesRequest(EvaluateRulesRequest request)
@@ -60,7 +103,7 @@ namespace RuleEvaluator1.Service.Actors
 
                 actorProviderService.GetRuleActorShardRegionProxy().Tell(shardEnvelope, Context.Self);
 
-                this.evaluateRequestData[request.Id].PendingShardNumbers.Add(payload.ShardNumber);
+                this.evaluateRequestData[request.Id].PendingShards.Add(payload.Shard);
             }
         }
 
@@ -90,14 +133,15 @@ namespace RuleEvaluator1.Service.Actors
                 {
                     Id = request.Id,
                     Rules = rules.ToList(),
-                    Metadata = this.metadata
+                    Metadata = this.metadata,
+                    Shard = (RuleShard)CommonUtil.GetRuleActorIdSequence(entityId, numberOfAkkaShards)
                 };
 
                 ShardEnvelope shardEnvelope = new ShardEnvelope(entityId, message);
 
                 actorProviderService.GetRuleActorShardRegionProxy().Tell(shardEnvelope, Context.Self);
 
-                this.saveRequestData[request.Id].PendingResponseCount++;
+                this.saveRequestData[request.Id].PendingShards.Add(message.Shard);
             }
         }
 
@@ -105,7 +149,7 @@ namespace RuleEvaluator1.Service.Actors
         {
             if (saveRequestData.TryGetValue(response.Id, out var requestState))
             {
-                if (requestState.AddShardResponse(response))
+                if (requestState.Merge(response))
                 {
                     saveRequestData.Remove(response.Id);
                     requestState.Requestor.Tell(requestState.CreateFinalResponse(), Self);

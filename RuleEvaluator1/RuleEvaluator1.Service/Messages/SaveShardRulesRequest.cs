@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RuleEvaluator1.Service.Messages
 {
-    public class SaveShardRulesRequest : BaseRequest
+    public class SaveShardRulesRequest : ShardBaseRequest
     {
         public RuleMetadata Metadata { get; set; }
         public List<InputRule> Rules { get; set; }
@@ -13,7 +13,8 @@ namespace RuleEvaluator1.Service.Messages
             return new SaveShardRulesResponse 
             { 
                 Id = this.Id,
-                Result = new Dictionary<string, BaseAckResponse>()
+                Result = new Dictionary<string, BaseAckResponse>(),
+                Shard = this.Shard
             };
         }
     }

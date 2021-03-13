@@ -4,32 +4,21 @@ using System.Collections.Generic;
 
 namespace RuleEvaluator1.Service.Models
 {
-    public class SaveRuleRequestState
+    public class SaveRuleRequestState : BaseRequestState<Dictionary<string, BaseAckResponse>>
     {
-        private readonly Dictionary<string, BaseAckResponse> result;
-        private readonly string requestId;
-
-        public int PendingResponseCount { get; set; }
-        public IActorRef Requestor { get; set; }
-        public bool IsComplete => PendingResponseCount == 0;
-
-        public SaveRuleRequestState(string reqId, IActorRef requestor)
+        public SaveRuleRequestState(string reqId, IActorRef requestor) : base(reqId, requestor)
         {
-            this.requestId = reqId;
-            result = new Dictionary<string, BaseAckResponse>();
-            this.Requestor = requestor;
+            Result = new Dictionary<string, BaseAckResponse>();
         }
 
-        public bool AddShardResponse(SaveShardRulesResponse response)
+        public bool Merge(SaveShardRulesResponse response)
         {
             foreach (var item in response.Result)
             {
-                result[item.Key] = item.Value;
+                Result[item.Key] = item.Value;
             }
 
-            PendingResponseCount--;
-
-            return IsComplete;
+            return base.Merge(response.Shard);
         }
 
         public SaveRulesResponse CreateFinalResponse()
@@ -37,7 +26,7 @@ namespace RuleEvaluator1.Service.Models
             return new SaveRulesResponse
             {
                 Id = requestId,
-                Result = result
+                Result = Result
             };
         }
     }
