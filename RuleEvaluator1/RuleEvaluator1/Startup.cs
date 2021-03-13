@@ -5,21 +5,23 @@ using Akka.Configuration;
 using Akka.DI.Core;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RuleEvaluator1.Common.Models;
 using RuleEvaluator1.Service.Actors;
 using RuleEvaluator1.Service.Helpers;
 using RuleEvaluator1.Service.Implementations;
 using RuleEvaluator1.Service.Interfaces;
+using RuleEvaluator1.Web.Models;
+using RuleEvaluator1.Web.Validators;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace RuleEvaluator1
+namespace RuleEvaluator1.Web
 {
     public class Startup
     {
@@ -35,7 +37,12 @@ namespace RuleEvaluator1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddFluentValidation(fv =>
+            {
+               fv.ImplicitlyValidateRootCollectionElements = true;
+            });
+
+            services.AddTransient<IValidator<Rule>, RuleValidator>();
 
             //services.AddMvc().AddJsonOptions(options =>
             //{
@@ -85,7 +92,7 @@ namespace RuleEvaluator1
             builder.RegisterType<RuleManagerActor>();
             builder.RegisterType<RuleActor>();
             builder.RegisterType<RuleEvaluationService>().As<IRuleEvaluationService>();
-            builder.Register(x => GetMapper());
+            builder.Register(x => AutoMapperConfiguration.GetMapper());
         }
 
         private async Task<IActorRef> GetShardRegionProxyForRuleActor(ActorSystem actorSystem)
@@ -102,18 +109,5 @@ namespace RuleEvaluator1
             return ConfigurationFactory.ParseString(File.ReadAllText(hoconPath));
         }
 
-
-        private IMapper GetMapper()
-        {
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.CreateMap<Web.Models.Rule, InputRule>();
-
-
-                cfg.CreateMap<InputRule, Web.Models.Rule>();
-            });
-
-            return config.CreateMapper();
-        }
     }
 }

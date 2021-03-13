@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RuleEvaluator1.Common.Helpers;
 using RuleEvaluator1.Common.Models;
 using RuleEvaluator1.Service.Interfaces;
 using RuleEvaluator1.Web.Models;
@@ -24,7 +26,7 @@ namespace RuleEvaluator1.Web.Controllers
         }
 
         // GET: api/Rule
-        [HttpGet]
+        /*[HttpGet]
         public IActionResult Get()
         {
             return Ok(Map<InputRule, Rule>(ruleEvaluationService.GetAllRules()));
@@ -43,7 +45,7 @@ namespace RuleEvaluator1.Web.Controllers
             {
                 return Ok(Map<InputRule, Rule>(rule));
             }
-        }
+        }*/
 
         [HttpPost("/eval")]
         [Consumes("application/json")]
@@ -56,23 +58,34 @@ namespace RuleEvaluator1.Web.Controllers
 
         // PUT: api/Rule/5
         [HttpPut("{id}")]
-        public async Task<object> PutAsync(string id, [FromBody] Rule value)
+        public async Task<ActionResult<WebApiResponse>> PutAsync(string id, [FromBody] Rule value)
         {
-            Dictionary<string, Service.Messages.BaseAckResponse> result = await ruleEvaluationService.AddUpdateRulesAsync(List(Map<Rule, InputRule>(value)));
-            var response = new WebApiResponse
-            {
-                Result = result,
-                IsSuccess = result.Values.All(x => x.IsSuccess)
-            };
+            // set id
+            value.Id = id;
 
-            return Ok(result);
+            return await AddUpdateRulesAsync(Utility.List(value));
+
         }
 
-        
-        [HttpPut("/metadata")]
-        public async Task<object> PutMetadata([FromBody] Dictionary<string,string> metadata)
+        [HttpPost]
+        public async Task<ActionResult<WebApiResponse>> AddUpdateRulesAsync([FromBody] List<Rule> rules)
         {
-            if (metadata == null)
+            if (rules == null || rules.Count == 0)
+            {
+                return BadRequest(WebApiResponse.EmptyInputInstance);
+            }
+
+            // perform add/update
+            WebApiResponse response = (WebApiResponse)await ruleEvaluationService.AddUpdateRulesAsync(Map<Rule, InputRule>(rules));
+
+            return response.IsBadRequest() ? BadRequest(response) : (ActionResult<WebApiResponse>)Ok(response);
+        }
+
+        [HttpPut("/metadata")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<WebApiResponse>> PutMetadataAsync([FromBody] Dictionary<string, string> metadata)
+        {
+            if (metadata.Count == 0)
             {
                 return BadRequest(WebApiResponse.EmptyInputInstance);
             }
@@ -86,19 +99,14 @@ namespace RuleEvaluator1.Web.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            
+
         }
 
-        private List<T> List<T>(params T[] args)
-        {
-            return args == null ? new List<T>() : args.ToList();
-        }
-
-        private IEnumerable<T2> Map<T1,T2>(IEnumerable<T1> values)
+        private IEnumerable<T2> Map<T1, T2>(IEnumerable<T1> values)
         {
             foreach (var item in values)
             {
-                yield return Map<T1,T2>(item);
+                yield return Map<T1, T2>(item);
             }
         }
 

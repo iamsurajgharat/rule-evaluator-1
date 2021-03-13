@@ -49,5 +49,41 @@ namespace RuleEvaluator1.Common.Test.Helpers
                 result.Should().Be(expectedResult);
             }
         }
+
+        public class IsNumber : ExtensionMethodsTests
+        {
+
+            [Theory]
+            [InlineData(10)]
+            [InlineData(10u)]
+            [InlineData(10L)]
+            [InlineData(10ul)]
+            [InlineData(10d)]
+            [InlineData(10f)]
+            public void Should_return_true_for_all_primitive_integral_types(object value)
+            {
+                // act and assure
+                value.IsNumber().Should().BeTrue();
+            }
+
+            [Fact]
+            public void Should_return_true_for_all_decimal_type()
+            {
+                // arrange
+                object value = 10m;
+
+                // act and assure
+                value.IsNumber().Should().BeTrue();
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("10.23")]
+            public void Should_return_false_for_other_than_numbers(object value)
+            {
+                // act and assure
+                value.IsNumber().Should().BeFalse();
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RuleEvaluator1.Common.Marshallers;
+﻿using RuleEvaluator1.Common.Helpers;
+using RuleEvaluator1.Common.Marshallers;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -90,6 +91,10 @@ namespace RuleEvaluator1.Common.Models
                 {
                     this.data[fieldName] = (Record)(Dictionary<string, object>)value;
                 }
+                else if(value.IsNumber())
+                {
+                    this.data[fieldName] = Convert.ToDecimal(value);
+                }
                 else
                 {
                     this.data[fieldName] = value;
@@ -102,7 +107,7 @@ namespace RuleEvaluator1.Common.Models
         {
             return (t.IsValueType) ? Activator.CreateInstance(t) : null;
         }
-
+       
         public static explicit operator Record(Dictionary<string, object> data)
         {
             return new Record(data);

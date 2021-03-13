@@ -4,7 +4,6 @@ using RuleEvaluator1.Common.Exceptions;
 using RuleEvaluator1.Common.Models;
 using RuleEvaluator1.Service.Interfaces;
 using RuleEvaluator1.Service.Messages;
-using RuleEvaluator1.Service.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,14 +98,13 @@ namespace RuleEvaluator1.Service.Implementations
             {
                 throw new RuleEvaluatorException(string.Format(Common.Constants.Messages.InvalidRuleDataTypes, string.Join(',', invalidRuleDataTypes), string.Join(',', Enum.GetValues(typeof(RuleDataType)))));
             }
-            else
-            {
-                BaseAckResponse response = await actorProviderService.GetRuleManagerActor().Ask<BaseAckResponse>(new SaveMetadataRequest { Metadata = processedMetadata });
 
-                if (!response.IsSuccess)
-                {
-                    throw new RuleEvaluatorException(response.Message);
-                }
+
+            BaseAckResponse response = await actorProviderService.GetRuleManagerActor().Ask<BaseAckResponse>(new SaveMetadataRequest { Metadata = processedMetadata });
+
+            if (!response.IsSuccess)
+            {
+                throw new RuleEvaluatorException(response.Message);
             }
         }
     }

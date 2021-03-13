@@ -2,7 +2,9 @@
 {
     public static class Messages
     {
-        public static readonly string EmptyRequest = "Required field/data is missing. [{0}]";
+        public static readonly string EmptyRequest = "Empty request body";
+
+        public static readonly string RequiredDataMissing = "Required field/data is missing. [{0}]";
 
         public static readonly string InvalidRuleDataTypes = "These input data type are not supported : [{0}].\nValid values are {1}";
 

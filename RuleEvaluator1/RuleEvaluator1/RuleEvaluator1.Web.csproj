@@ -5,12 +5,14 @@
     <UserSecretsId>da7db820-738a-494e-a286-d1c967cf4c19</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <LangVersion>8.0</LangVersion>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.1.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>

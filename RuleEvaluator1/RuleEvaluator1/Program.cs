@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace RuleEvaluator1
+namespace RuleEvaluator1.Web
 {
     public class Program
     {

@@ -29,5 +29,20 @@ namespace RuleEvaluator1.Common.Helpers
                 _ => throw new RuleEvaluatorException("Invalid operator : " + receiver)
             };
         }
+
+        public static bool IsNumber(this object value)
+        {
+            return value is sbyte
+                    || value is byte
+                    || value is short
+                    || value is ushort
+                    || value is int
+                    || value is uint
+                    || value is long
+                    || value is ulong
+                    || value is float
+                    || value is double
+                    || value is decimal;
+        }
     }
 }
