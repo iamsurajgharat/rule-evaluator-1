@@ -12,6 +12,14 @@ namespace RuleEvaluator1.Common.Models
         private readonly Delegate rule;
         private readonly List<CompiledRuleParameter> parameters = new List<CompiledRuleParameter>();
 
+        public InputRule RawRule
+        {
+            get
+            {
+                return rawRule;
+            }
+        }
+
         public CompiledRule(InputRule rule, Delegate compiledExpression, List<ParameterExpression> parameters)
         {
             this.rawRule = rule ?? throw new ArgumentNullException(nameof(rule));
@@ -32,7 +40,7 @@ namespace RuleEvaluator1.Common.Models
             }
         }
 
-        public object EvaluateForResult(Record data)
+        public string EvaluateForResult(Record data)
         {
             var result = Evaluate(data);
 

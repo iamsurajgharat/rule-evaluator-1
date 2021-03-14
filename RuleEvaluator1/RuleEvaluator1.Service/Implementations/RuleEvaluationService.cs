@@ -54,7 +54,7 @@ namespace RuleEvaluator1.Service.Implementations
             }
         }
 
-        public async Task<List<object>[]> EvaluateAsync(List<Record> records)
+        public async Task<List<string>[]> EvaluateAsync(List<Record> records)
         {
             var request = new EvaluateRulesRequest
             {
@@ -112,7 +112,7 @@ namespace RuleEvaluator1.Service.Implementations
             }
 
 
-            BaseAckResponse response = await actorProviderService.GetRuleManagerActor().Ask<BaseAckResponse>(new SaveMetadataRequest { Metadata = processedMetadata });
+            BaseAckResponse response = await actorProviderService.GetRuleManagerActor().Ask<BaseAckResponse>(new SaveMetadataRequest { Id = Guid.NewGuid().ToString(), Metadata = processedMetadata });
 
             if (!response.IsSuccess)
             {

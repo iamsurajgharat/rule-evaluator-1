@@ -56,11 +56,11 @@ namespace RuleEvaluator1.Web.Controllers
 
         [HttpPost("eval")]
         [Consumes("application/json")]
-        public async Task<IActionResult> EvalAsync([FromBody] List<Record> records)
+        public async Task<ActionResult<WebApiResponse>> EvalAsync([FromBody] List<Record> records)
         {
-            var result = await ruleEvaluationService.EvaluateAsync(records);
+            List<string>[] result = await ruleEvaluationService.EvaluateAsync(records);
 
-            return Ok(result);
+            return Ok(WebApiResponse.Instance(result));
         }
 
         // PUT: api/Rule/5

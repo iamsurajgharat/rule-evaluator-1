@@ -13,15 +13,22 @@ namespace RuleEvaluator1.Service.Helpers
 
         public override string EntityId(object message)
         {
-            if (message is ShardEnvelope shardEnvelope && !string.IsNullOrWhiteSpace(shardEnvelope.entityId))
+            if (message is ShardEnvelope shardEnvelope && shardEnvelope.message is ShardBaseRequest shardBaseRequest)
             {
-                return "Rule_" + (shardEnvelope.message is EvaluateShardRulesRequest evaluateShardRulesRequest ?
-                                    CommonUtil.GetRuleActorIdSequence(evaluateShardRulesRequest.Shard.Number, numberOfShards) :
-                                    CommonUtil.GetRuleActorIdSequence(shardEnvelope.entityId, numberOfShards)
-                                    );
+                return "Rule_" + shardBaseRequest.Shard.Number.ToString();
             }
 
             return string.Empty;
+        }
+
+        public override string ShardId(object message)
+        {
+            if (message is ShardEnvelope shardEnvelope && shardEnvelope.message is ShardBaseRequest shardBaseRequest)
+            {
+                return shardBaseRequest.Shard.Number.ToString();
+            }
+
+            return base.ShardId(message);
         }
 
         public override object EntityMessage(object message) => (message as ShardEnvelope)?.message;

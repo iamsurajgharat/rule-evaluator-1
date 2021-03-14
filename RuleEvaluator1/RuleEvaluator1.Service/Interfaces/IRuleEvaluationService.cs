@@ -12,7 +12,7 @@ namespace RuleEvaluator1.Service.Interfaces
         IEnumerable<InputRule> GetAllRules();
         Task<Dictionary<string, List<string>>> GetRuleShardsAsync();
         void DeleteRules(IEnumerable<string> ids);
-        Task<List<object>[]> EvaluateAsync(List<Record> records);
+        Task<List<string>[]> EvaluateAsync(List<Record> records);
         Task PutMetadataAsync(Dictionary<string, string> metadata);
     }
 }

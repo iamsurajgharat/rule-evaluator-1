@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace RuleEvaluator1.Service.Models
 {
-    public class EvaluateRequestState : BaseRequestState<List<object>[]>
+    public class EvaluateRequestState : BaseRequestState<List<string>[]>
     {
         public EvaluateRequestState(int numberOfRecords, string reqId, IActorRef requestor) : base(reqId, requestor)
         {
-            Result = Enumerable.Range(0, numberOfRecords).Select(x => new List<object>()).ToArray();
+            Result = Enumerable.Range(0, numberOfRecords).Select(x => new List<string>()).ToArray();
         }
 
         public bool Merge(EvaluateShardRulesResponse shardRulesResponse)

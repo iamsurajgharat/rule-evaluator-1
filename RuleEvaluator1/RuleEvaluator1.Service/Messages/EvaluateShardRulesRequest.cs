@@ -13,7 +13,7 @@ namespace RuleEvaluator1.Service.Messages
             return new EvaluateShardRulesResponse
             {
                 Id = Id,
-                Result = Enumerable.Range(0, Records.Count).Select(x => new List<object>()).ToArray(),
+                Result = Enumerable.Range(0, Records.Count).Select(x => new List<string>()).ToArray(),
                 Shard = Shard
             };
         }

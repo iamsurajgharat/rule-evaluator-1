@@ -15,6 +15,7 @@
     <PackageReference Include="Akka.Cluster.Sharding" Version="1.4.16" />
     <PackageReference Include="Akka.DI.AutoFac" Version="1.4.1" />
     <PackageReference Include="Akka.Persistence" Version="1.4.16" />
+    <PackageReference Include="Akka.Persistence.MongoDb" Version="1.4.14" />
   </ItemGroup>
 
 </Project>

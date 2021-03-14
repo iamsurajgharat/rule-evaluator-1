@@ -26,6 +26,8 @@ namespace RuleEvaluator1.Common.Helpers
                 "<=" => RuleOperator.Lte,
                 "==" => RuleOperator.Eq,
                 "!=" => RuleOperator.NotEquals,
+                "||" => RuleOperator.Or,
+                "&&" => RuleOperator.And,
                 _ => throw new RuleEvaluatorException("Invalid operator : " + receiver)
             };
         }

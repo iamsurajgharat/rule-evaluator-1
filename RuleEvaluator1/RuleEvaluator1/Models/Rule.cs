@@ -4,6 +4,6 @@
     {
         public string Id { get; set; }
         public string PredicateExpression { get; set; }
-        public object Result { get; set; }
+        public string Result { get; set; }
     }
 }

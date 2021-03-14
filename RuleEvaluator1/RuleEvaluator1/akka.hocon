@@ -9,4 +9,21 @@
     cluster {
         seed-nodes = ["akka.tcp://REActorSystem@localhost:8081"]
     }
+
+	persistence {
+		journal {
+			plugin = "akka.persistence.journal.mongodb"
+			mongodb {
+				class = "Akka.Persistence.MongoDb.Journal.MongoDbJournal, Akka.Persistence.MongoDb"
+
+				connection-string = "mongodb://localhost:27017/rule-eval-1"
+				
+
+				collection = "Rules"
+
+				# dispatcher used to drive journal actor
+				plugin-dispatcher = "akka.actor.default-dispatcher"
+			}
+		}
+	}
 }

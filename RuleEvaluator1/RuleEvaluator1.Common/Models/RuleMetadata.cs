@@ -6,24 +6,24 @@ namespace RuleEvaluator1.Common.Models
 {
     public class RuleMetadata
     {
-        private readonly Dictionary<string, RuleDataType> values;
+        public Dictionary<string, RuleDataType> Values { get; set; }
 
         public RuleMetadata()
         {
-            values = new Dictionary<string, RuleDataType>();
+            Values = new Dictionary<string, RuleDataType>();
         }
 
         public RuleMetadata(Dictionary<string, RuleDataType> values) : this()
         {
             foreach (var item in values)
             {
-                this.values[item.Key] = item.Value;
+                this.Values[item.Key] = item.Value;
             }
         }
 
-        public bool IsEmpty() => values.Count == 0;
+        public bool IsEmpty() => Values.Count == 0;
 
-        public RuleDataType? GetRuleDataType(string fieldName) => values.TryGetValue(fieldName, out var result) ? (RuleDataType?)result : null;
+        public RuleDataType? GetRuleDataType(string fieldName) => Values.TryGetValue(fieldName, out var result) ? (RuleDataType?)result : null;
 
         public bool Upsert(string fieldName, string dataType)
         {
@@ -33,7 +33,7 @@ namespace RuleEvaluator1.Common.Models
                 return false;
             }
 
-            this.values[fieldName] = convertedEnum.Value;
+            this.Values[fieldName] = convertedEnum.Value;
 
             return true;
         }
